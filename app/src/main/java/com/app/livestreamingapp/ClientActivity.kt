@@ -3,6 +3,8 @@ package com.app.livestreamingapp
 
 import android.Manifest
 import android.content.pm.PackageManager
+import android.hardware.Camera
+import android.hardware.camera2.CameraCaptureSession
 import android.os.Build
 import android.os.Bundle
 import android.view.SurfaceView
@@ -18,7 +20,13 @@ import io.agora.rtc2.Constants
 import io.agora.rtc2.IRtcEngineEventHandler
 import io.agora.rtc2.RtcEngine
 import io.agora.rtc2.RtcEngineConfig
+import io.agora.rtc2.video.CameraCapturerConfiguration
 import io.agora.rtc2.video.VideoCanvas
+import io.agora.rtc2.video.VideoEncoderConfiguration.MIRROR_MODE_TYPE
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 
 class ClientActivity : AppCompatActivity() {
@@ -29,8 +37,8 @@ class ClientActivity : AppCompatActivity() {
     private lateinit var surfaceView : SurfaceView
     private lateinit var startCall : ImageView
     private lateinit var endCall : ImageView
+    private lateinit var switchCamera : ImageView
     private lateinit var container : FrameLayout
-
     private val appId = "c24451635a5144aa85101bb7e211faee"
     private val channelName = "security"
     private var mRtcEngine: RtcEngine? = null
@@ -49,6 +57,7 @@ class ClientActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.client_activity_main)
 
+        switchCamera = findViewById(R.id.switchCamera)
         startCall = findViewById(R.id.startCall)
         endCall = findViewById(R.id.endCall)
         container = findViewById(R.id.local_video_view_container)
@@ -68,6 +77,9 @@ class ClientActivity : AppCompatActivity() {
 
             }
         }
+        switchCamera.setOnClickListener {
+            mRtcEngine!!.switchCamera()
+        }
 
     }
 
@@ -84,7 +96,6 @@ class ClientActivity : AppCompatActivity() {
 
 
         mRtcEngine!!.enableVideo()
-
         mRtcEngine!!.startPreview()
         container.addView(surfaceView)
         mRtcEngine!!.setupLocalVideo(VideoCanvas(surfaceView, VideoCanvas.RENDER_MODE_FIT, 0))
@@ -95,6 +106,14 @@ class ClientActivity : AppCompatActivity() {
         startCall.visibility = View.INVISIBLE
         endCall.visibility = View.VISIBLE
 
+        CoroutineScope(Dispatchers.Main).launch {
+            delay(500)
+            if (switchCamera.isClickable){
+                switchCamera.performClick()
+                switchCamera.visibility = View.GONE
+                switchCamera.isClickable = false
+            }
+        }
     }
     private fun leaveChannel(){
         mRtcEngine?.leaveChannel()
@@ -105,8 +124,8 @@ class ClientActivity : AppCompatActivity() {
             arrayOf(
                 Manifest.permission.RECORD_AUDIO,
                 Manifest.permission.CAMERA,
-                android.Manifest.permission.READ_PHONE_STATE,
-                android.Manifest.permission.BLUETOOTH_CONNECT
+                Manifest.permission.READ_PHONE_STATE,
+                Manifest.permission.BLUETOOTH_CONNECT
             )
         } else {
             arrayOf(

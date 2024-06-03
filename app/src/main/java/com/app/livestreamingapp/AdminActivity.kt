@@ -16,6 +16,7 @@ import io.agora.rtc2.Constants
 import io.agora.rtc2.IRtcEngineEventHandler
 import io.agora.rtc2.RtcEngine
 import io.agora.rtc2.RtcEngineConfig
+import io.agora.rtc2.video.CameraCapturerConfiguration
 import io.agora.rtc2.video.VideoCanvas
 
 
@@ -24,7 +25,7 @@ class AdminActivity : AppCompatActivity() {
     companion object {
         private const val PERMISSION_REQ_ID = 22
     }
-
+    private var isUsingFrontCamera = true
     private lateinit var remoteVideoContainers: Array<FrameLayout>
     private lateinit var remoteSurfaceView: SurfaceView
     private val appId = "c24451635a5144aa85101bb7e211faee"
@@ -81,7 +82,6 @@ class AdminActivity : AppCompatActivity() {
         }
 
         mRtcEngine!!.enableVideo()
-
         val options = ChannelMediaOptions()
         options.clientRoleType = Constants.CLIENT_ROLE_BROADCASTER
         options.channelProfile = Constants.CHANNEL_PROFILE_COMMUNICATION
@@ -104,6 +104,7 @@ class AdminActivity : AppCompatActivity() {
             mRtcEngine!!.setupRemoteVideo(VideoCanvas(surfaceView, VideoCanvas.RENDER_MODE_FIT, uid))
         }
     }
+
     private fun onRemoteUserLeft(uid: Int) {
         val containerIndex = userContainerMap[uid]
         containerIndex?.let {
