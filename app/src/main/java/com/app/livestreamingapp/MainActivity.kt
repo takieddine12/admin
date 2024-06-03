@@ -41,11 +41,18 @@ class MainActivity : AppCompatActivity() {
     private val channelName = "security"
     private var mRtcEngine: RtcEngine? = null
     private val surfaceViews = mutableMapOf<Int, SurfaceView>()
+    private val userContainerMap = mutableMapOf<Int, Int>()
     private val mRtcEventHandler: IRtcEngineEventHandler = object : IRtcEngineEventHandler() {
         // Monitor remote users in the channel and obtain their uid
         override fun onUserJoined(uid: Int, elapsed: Int) {
-            runOnUiThread { // After obtaining uid, set up the remote video view
+            runOnUiThread {
                 setupRemoteVideo(uid)
+            }
+        }
+
+        override fun onUserOffline(uid: Int, reason: Int) {
+            runOnUiThread {
+                onRemoteUserLeft(uid)
             }
         }
     }
@@ -96,25 +103,31 @@ class MainActivity : AppCompatActivity() {
         mRtcEngine!!.enableLocalVideo(false)
         mRtcEngine!!.enableLocalAudio(false)
         mRtcEngine!!.disableAudio()
-
     }
 
-
-    private fun leaveChannel() {
-        mRtcEngine?.leaveChannel()
-        remoteVideoContainers.forEach { container ->
-            container.removeAllViews()
-        }
-    }
 
     private fun setupRemoteVideo(uid: Int) {
         val surfaceView = RtcEngine.CreateRendererView(baseContext)
         surfaceViews[uid] = surfaceView
-        val container = remoteVideoContainers.firstOrNull { it.childCount == 0 }
-        container?.let {
-            it.addView(surfaceView)
+        val containerIndex = userContainerMap.getOrPut(uid) {
+            remoteVideoContainers.indexOfFirst { it.childCount == 0 }
+        }
+        if (containerIndex >= 0) {
+            val container = remoteVideoContainers[containerIndex]
+            container.removeAllViews()
+            container.addView(surfaceView)
             mRtcEngine!!.setupRemoteVideo(VideoCanvas(surfaceView, VideoCanvas.RENDER_MODE_FIT, uid))
         }
+    }
+
+    private fun onRemoteUserLeft(uid: Int) {
+        val containerIndex = userContainerMap[uid]
+        containerIndex?.let {
+            val container = remoteVideoContainers[it]
+            container.removeAllViews()
+        }
+        surfaceViews.remove(uid)
+        userContainerMap.remove(uid)
     }
 
     private fun getRequiredPermissions(): Array<String>? {
