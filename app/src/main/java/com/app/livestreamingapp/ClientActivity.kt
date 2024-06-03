@@ -5,13 +5,10 @@ import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
-import android.util.Log
 import android.view.SurfaceView
 import android.view.View
-import android.widget.Button
 import android.widget.FrameLayout
 import android.widget.ImageView
-import android.widget.Switch
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
@@ -22,63 +19,55 @@ import io.agora.rtc2.IRtcEngineEventHandler
 import io.agora.rtc2.RtcEngine
 import io.agora.rtc2.RtcEngineConfig
 import io.agora.rtc2.video.VideoCanvas
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 
 
-class MainActivity : AppCompatActivity() {
+class ClientActivity : AppCompatActivity() {
 
     companion object {
         private const val PERMISSION_REQ_ID = 22
     }
+    private lateinit var surfaceView : SurfaceView
+    private lateinit var startCall : ImageView
+    private lateinit var endCall : ImageView
+    private lateinit var container : FrameLayout
 
-    private lateinit var remoteVideoContainers: Array<FrameLayout>
-    private lateinit var remoteSurfaceView: SurfaceView
-    private lateinit var remoteVideoContainer : FrameLayout
     private val appId = "c24451635a5144aa85101bb7e211faee"
     private val channelName = "security"
     private var mRtcEngine: RtcEngine? = null
-    private val surfaceViews = mutableMapOf<Int, SurfaceView>()
-    private val userContainerMap = mutableMapOf<Int, Int>()
     private val mRtcEventHandler: IRtcEngineEventHandler = object : IRtcEngineEventHandler() {
-        // Monitor remote users in the channel and obtain their uid
         override fun onUserJoined(uid: Int, elapsed: Int) {
             runOnUiThread {
-                setupRemoteVideo(uid)
             }
         }
 
         override fun onUserOffline(uid: Int, reason: Int) {
-            runOnUiThread {
-                onRemoteUserLeft(uid)
-            }
+            super.onUserOffline(uid, reason)
         }
     }
 
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        setContentView(R.layout.client_activity_main)
 
-
-        remoteVideoContainers = arrayOf(
-            findViewById(R.id.remote_video_view_container),
-            findViewById(R.id.remote_video_view_container1),
-            findViewById(R.id.remote_video_view_container2),
-            findViewById(R.id.remote_video_view_container3)
-        )
-
-
-
-        remoteSurfaceView = SurfaceView(baseContext)
-        if (checkPermissions()) {
-            initialize()
-        } else {
-            ActivityCompat.requestPermissions(this, getRequiredPermissions()!!, PERMISSION_REQ_ID);
+        startCall = findViewById(R.id.startCall)
+        endCall = findViewById(R.id.endCall)
+        container = findViewById(R.id.local_video_view_container)
+        surfaceView = SurfaceView(baseContext)
+        startCall.setOnClickListener {
+            if (checkPermissions()) {
+                initialize()
+            } else {
+                ActivityCompat.requestPermissions(this, getRequiredPermissions()!!, PERMISSION_REQ_ID);
+            }
         }
+        endCall.setOnClickListener {
+            if (mRtcEngine != null){
+                leaveChannel()
+                startCall.visibility = View.VISIBLE
+                endCall.visibility = View.GONE
 
+            }
+        }
 
     }
 
@@ -93,60 +82,39 @@ class MainActivity : AppCompatActivity() {
             throw RuntimeException("Check the error.")
         }
 
+
         mRtcEngine!!.enableVideo()
 
+        mRtcEngine!!.startPreview()
+        container.addView(surfaceView)
+        mRtcEngine!!.setupLocalVideo(VideoCanvas(surfaceView, VideoCanvas.RENDER_MODE_FIT, 0))
         val options = ChannelMediaOptions()
         options.clientRoleType = Constants.CLIENT_ROLE_BROADCASTER
         options.channelProfile = Constants.CHANNEL_PROFILE_COMMUNICATION
         mRtcEngine?.joinChannel(appId, channelName, System.currentTimeMillis().toInt(), options)
+        startCall.visibility = View.INVISIBLE
+        endCall.visibility = View.VISIBLE
 
-        mRtcEngine!!.enableLocalVideo(false)
-        mRtcEngine!!.enableLocalAudio(false)
-        mRtcEngine!!.disableAudio()
     }
-
-
-    private fun setupRemoteVideo(uid: Int) {
-        val surfaceView = RtcEngine.CreateRendererView(baseContext)
-        surfaceViews[uid] = surfaceView
-        val containerIndex = userContainerMap.getOrPut(uid) {
-            remoteVideoContainers.indexOfFirst { it.childCount == 0 }
-        }
-        if (containerIndex >= 0) {
-            val container = remoteVideoContainers[containerIndex]
-            container.removeAllViews()
-            container.addView(surfaceView)
-            mRtcEngine!!.setupRemoteVideo(VideoCanvas(surfaceView, VideoCanvas.RENDER_MODE_FIT, uid))
-        }
+    private fun leaveChannel(){
+        mRtcEngine?.leaveChannel()
+        container.removeView(surfaceView)
     }
-
-    private fun onRemoteUserLeft(uid: Int) {
-        val containerIndex = userContainerMap[uid]
-        containerIndex?.let {
-            val container = remoteVideoContainers[it]
-            container.removeAllViews()
-        }
-        surfaceViews.remove(uid)
-        userContainerMap.remove(uid)
-    }
-
     private fun getRequiredPermissions(): Array<String>? {
-        // Determine the permissions required when targetSDKVersion is 31 or above
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            arrayOf<String>(
-                android.Manifest.permission.RECORD_AUDIO,  // Recording permission
-                android.Manifest.permission.CAMERA,  // Camera permission
-                android.Manifest.permission.READ_PHONE_STATE,  // Permission to read phone status
-                android.Manifest.permission.BLUETOOTH_CONNECT // Bluetooth connection permission
+            arrayOf(
+                Manifest.permission.RECORD_AUDIO,
+                Manifest.permission.CAMERA,
+                android.Manifest.permission.READ_PHONE_STATE,
+                android.Manifest.permission.BLUETOOTH_CONNECT
             )
         } else {
-            arrayOf<String>(
-                android.Manifest.permission.RECORD_AUDIO,
+            arrayOf(
+                Manifest.permission.RECORD_AUDIO,
                 Manifest.permission.CAMERA
             )
         }
     }
-
     private fun checkPermissions(): Boolean {
         for (permission in getRequiredPermissions()!!) {
             val permissionCheck = ContextCompat.checkSelfPermission(this, permission)
@@ -156,20 +124,15 @@ class MainActivity : AppCompatActivity() {
         }
         return true
     }
-
     override fun onDestroy() {
         super.onDestroy()
-        // Stop local video preview
         mRtcEngine!!.stopPreview()
-        // Leave the channel
         mRtcEngine!!.leaveChannel()
     }
-
-
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == PERMISSION_REQ_ID && grantResults.isNotEmpty()){
-
+            Toast.makeText(this,"Permissions granted",Toast.LENGTH_LONG).show()
         } else {
             Toast.makeText(this,"Please grant permissions",Toast.LENGTH_LONG).show()
             ActivityCompat.requestPermissions(this, getRequiredPermissions()!!, PERMISSION_REQ_ID)
