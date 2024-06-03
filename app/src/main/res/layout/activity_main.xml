@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MainActivity">
+
+
+
+
+    <FrameLayout
+        android:id="@+id/remote_video_view_container"
+        android:layout_width="180dp"
+        android:layout_height="250dp"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentRight="true"
+        android:layout_marginTop="100dp"
+        android:background="@android:color/darker_gray"
+        app:layout_constraintEnd_toStartOf="@+id/remote_video_view_container1"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:ignore="MissingConstraints" />
+
+    <FrameLayout
+        android:id="@+id/remote_video_view_container1"
+        android:layout_width="180dp"
+        android:layout_height="250dp"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentRight="true"
+        android:layout_marginTop="100dp"
+        android:background="@android:color/darker_gray"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.896"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:ignore="MissingConstraints" />
+
+
+    <FrameLayout
+        android:id="@+id/remote_video_view_container2"
+        android:layout_width="180dp"
+        android:layout_height="250dp"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentRight="true"
+        android:background="@android:color/darker_gray"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/remote_video_view_container3"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/remote_video_view_container"
+        app:layout_constraintVertical_bias="0.266"
+        tools:ignore="MissingConstraints" />
+
+    <FrameLayout
+        android:id="@+id/remote_video_view_container3"
+        android:layout_width="180dp"
+        android:layout_height="250dp"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentEnd="true"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.896"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/remote_video_view_container1"
+        app:layout_constraintVertical_bias="0.266" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

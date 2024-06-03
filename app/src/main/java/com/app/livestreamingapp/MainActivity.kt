@@ -1,0 +1,168 @@
+package com.app.livestreamingapp
+
+
+import android.Manifest
+import android.content.pm.PackageManager
+import android.os.Build
+import android.os.Bundle
+import android.util.Log
+import android.view.SurfaceView
+import android.view.View
+import android.widget.Button
+import android.widget.FrameLayout
+import android.widget.ImageView
+import android.widget.Switch
+import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
+import io.agora.rtc2.ChannelMediaOptions
+import io.agora.rtc2.Constants
+import io.agora.rtc2.IRtcEngineEventHandler
+import io.agora.rtc2.RtcEngine
+import io.agora.rtc2.RtcEngineConfig
+import io.agora.rtc2.video.VideoCanvas
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+
+
+class MainActivity : AppCompatActivity() {
+
+    companion object {
+        private const val PERMISSION_REQ_ID = 22
+    }
+
+    private lateinit var remoteVideoContainers: Array<FrameLayout>
+    private lateinit var remoteSurfaceView: SurfaceView
+    private lateinit var remoteVideoContainer : FrameLayout
+    private val appId = "c24451635a5144aa85101bb7e211faee"
+    private val channelName = "security"
+    private var mRtcEngine: RtcEngine? = null
+    private val surfaceViews = mutableMapOf<Int, SurfaceView>()
+    private val mRtcEventHandler: IRtcEngineEventHandler = object : IRtcEngineEventHandler() {
+        // Monitor remote users in the channel and obtain their uid
+        override fun onUserJoined(uid: Int, elapsed: Int) {
+            runOnUiThread { // After obtaining uid, set up the remote video view
+                setupRemoteVideo(uid)
+            }
+        }
+    }
+
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_main)
+
+
+        remoteVideoContainers = arrayOf(
+            findViewById(R.id.remote_video_view_container),
+            findViewById(R.id.remote_video_view_container1),
+            findViewById(R.id.remote_video_view_container2),
+            findViewById(R.id.remote_video_view_container3)
+        )
+
+
+
+        remoteSurfaceView = SurfaceView(baseContext)
+        if (checkPermissions()) {
+            initialize()
+        } else {
+            ActivityCompat.requestPermissions(this, getRequiredPermissions()!!, PERMISSION_REQ_ID);
+        }
+
+
+    }
+
+    private fun initialize() {
+        try {
+            val config = RtcEngineConfig()
+            config.mContext = baseContext
+            config.mAppId = appId
+            config.mEventHandler = mRtcEventHandler
+            mRtcEngine = RtcEngine.create(config)
+        } catch (e: Exception) {
+            throw RuntimeException("Check the error.")
+        }
+
+        mRtcEngine!!.enableVideo()
+
+        val options = ChannelMediaOptions()
+        options.clientRoleType = Constants.CLIENT_ROLE_BROADCASTER
+        options.channelProfile = Constants.CHANNEL_PROFILE_COMMUNICATION
+        mRtcEngine?.joinChannel(appId, channelName, System.currentTimeMillis().toInt(), options)
+
+        mRtcEngine!!.enableLocalVideo(false)
+        mRtcEngine!!.enableLocalAudio(false)
+        mRtcEngine!!.disableAudio()
+
+    }
+
+
+    private fun leaveChannel() {
+        mRtcEngine?.leaveChannel()
+        remoteVideoContainers.forEach { container ->
+            container.removeAllViews()
+        }
+    }
+
+    private fun setupRemoteVideo(uid: Int) {
+        val surfaceView = RtcEngine.CreateRendererView(baseContext)
+        surfaceViews[uid] = surfaceView
+        val container = remoteVideoContainers.firstOrNull { it.childCount == 0 }
+        container?.let {
+            it.addView(surfaceView)
+            mRtcEngine!!.setupRemoteVideo(VideoCanvas(surfaceView, VideoCanvas.RENDER_MODE_FIT, uid))
+        }
+    }
+
+    private fun getRequiredPermissions(): Array<String>? {
+        // Determine the permissions required when targetSDKVersion is 31 or above
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            arrayOf<String>(
+                android.Manifest.permission.RECORD_AUDIO,  // Recording permission
+                android.Manifest.permission.CAMERA,  // Camera permission
+                android.Manifest.permission.READ_PHONE_STATE,  // Permission to read phone status
+                android.Manifest.permission.BLUETOOTH_CONNECT // Bluetooth connection permission
+            )
+        } else {
+            arrayOf<String>(
+                android.Manifest.permission.RECORD_AUDIO,
+                Manifest.permission.CAMERA
+            )
+        }
+    }
+
+    private fun checkPermissions(): Boolean {
+        for (permission in getRequiredPermissions()!!) {
+            val permissionCheck = ContextCompat.checkSelfPermission(this, permission)
+            if (permissionCheck != PackageManager.PERMISSION_GRANTED) {
+                return false
+            }
+        }
+        return true
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        // Stop local video preview
+        mRtcEngine!!.stopPreview()
+        // Leave the channel
+        mRtcEngine!!.leaveChannel()
+    }
+
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == PERMISSION_REQ_ID && grantResults.isNotEmpty()){
+
+        } else {
+            Toast.makeText(this,"Please grant permissions",Toast.LENGTH_LONG).show()
+            ActivityCompat.requestPermissions(this, getRequiredPermissions()!!, PERMISSION_REQ_ID)
+        }
+    }
+
+
+
+}

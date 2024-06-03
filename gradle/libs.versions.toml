@@ -1,0 +1,32 @@
+[versions]
+agp = "8.2.0-alpha07"
+google-webrtc = "1.0.32006"
+kotlin = "1.8.21"
+core-ktx = "1.9.0"
+junit = "4.13.2"
+androidx-test-ext-junit = "1.1.5"
+espresso-core = "3.5.1"
+appcompat = "1.7.0"
+material = "1.12.0"
+constraintlayout = "2.1.4"
+voice-sdk = "4.3.0"
+
+[libraries]
+core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "core-ktx" }
+full-sdk = { module = "io.agora.rtc:full-sdk", version.ref = "voice-sdk" }
+google-webrtc = { module = "org.webrtc:google-webrtc", version.ref = "google-webrtc" }
+junit = { group = "junit", name = "junit", version.ref = "junit" }
+androidx-test-ext-junit = { group = "androidx.test.ext", name = "junit", version.ref = "androidx-test-ext-junit" }
+espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espresso-core" }
+appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
+material = { group = "com.google.android.material", name = "material", version.ref = "material" }
+constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "constraintlayout" }
+voice-sdk = { module = "io.agora.rtc:voice-sdk", version.ref = "voice-sdk" }
+
+[plugins]
+androidApplication = { id = "com.android.application", version.ref = "agp" }
+kotlinAndroid = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+
+
+[bundles]
+
