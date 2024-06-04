@@ -6,62 +6,52 @@
     android:layout_height="match_parent"
     tools:context=".AdminActivity">
 
-
-
     <FrameLayout
         android:id="@+id/remote_video_view_container"
         android:layout_width="180dp"
         android:layout_height="250dp"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentEnd="true"
+        android:layout_marginStart="8dp"
         android:layout_marginTop="100dp"
+        android:layout_marginEnd="8dp"
         android:background="@drawable/live_background_shape"
         app:layout_constraintEnd_toStartOf="@+id/remote_video_view_container1"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        tools:ignore="MissingConstraints" />
+        app:layout_constraintTop_toTopOf="parent" />
 
     <FrameLayout
         android:id="@+id/remote_video_view_container1"
         android:layout_width="180dp"
         android:layout_height="250dp"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentEnd="true"
-        android:background="@drawable/live_background_shape"
+        android:layout_marginStart="8dp"
         android:layout_marginTop="100dp"
+        android:layout_marginEnd="8dp"
+        android:background="@drawable/live_background_shape"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.896"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        tools:ignore="MissingConstraints" />
-
+        app:layout_constraintStart_toEndOf="@+id/remote_video_view_container"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <FrameLayout
         android:id="@+id/remote_video_view_container2"
         android:layout_width="180dp"
         android:layout_height="250dp"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentEnd="true"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="32dp"
+        android:layout_marginEnd="8dp"
         android:background="@drawable/live_background_shape"
-        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/remote_video_view_container3"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/remote_video_view_container"
-        app:layout_constraintVertical_bias="0.266"
-        tools:ignore="MissingConstraints" />
+        app:layout_constraintTop_toBottomOf="@+id/remote_video_view_container" />
 
     <FrameLayout
         android:id="@+id/remote_video_view_container3"
         android:layout_width="180dp"
         android:layout_height="250dp"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentEnd="true"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="32dp"
+        android:layout_marginEnd="8dp"
         android:background="@drawable/live_background_shape"
-        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.896"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/remote_video_view_container1"
-        app:layout_constraintVertical_bias="0.266" />
+        app:layout_constraintStart_toEndOf="@+id/remote_video_view_container2"
+        app:layout_constraintTop_toBottomOf="@+id/remote_video_view_container1" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

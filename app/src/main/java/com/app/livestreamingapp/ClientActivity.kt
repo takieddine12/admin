@@ -35,8 +35,6 @@ class ClientActivity : AppCompatActivity() {
         private const val PERMISSION_REQ_ID = 22
     }
     private lateinit var surfaceView : SurfaceView
-    private lateinit var startCall : ImageView
-    private lateinit var endCall : ImageView
     private lateinit var switchCamera : ImageView
     private lateinit var container : FrameLayout
     private val appId = "c24451635a5144aa85101bb7e211faee"
@@ -58,25 +56,15 @@ class ClientActivity : AppCompatActivity() {
         setContentView(R.layout.client_activity_main)
 
         switchCamera = findViewById(R.id.switchCamera)
-        startCall = findViewById(R.id.startCall)
-        endCall = findViewById(R.id.endCall)
         container = findViewById(R.id.local_video_view_container)
         surfaceView = SurfaceView(baseContext)
-        startCall.setOnClickListener {
-            if (checkPermissions()) {
-                initialize()
-            } else {
-                ActivityCompat.requestPermissions(this, getRequiredPermissions()!!, PERMISSION_REQ_ID);
-            }
-        }
-        endCall.setOnClickListener {
-            if (mRtcEngine != null){
-                leaveChannel()
-                startCall.visibility = View.VISIBLE
-                endCall.visibility = View.GONE
 
-            }
+        if (checkPermissions()) {
+            initialize()
+        } else {
+            ActivityCompat.requestPermissions(this, getRequiredPermissions()!!, PERMISSION_REQ_ID);
         }
+
         switchCamera.setOnClickListener {
             mRtcEngine!!.switchCamera()
         }
@@ -103,8 +91,7 @@ class ClientActivity : AppCompatActivity() {
         options.clientRoleType = Constants.CLIENT_ROLE_BROADCASTER
         options.channelProfile = Constants.CHANNEL_PROFILE_COMMUNICATION
         mRtcEngine?.joinChannel(appId, channelName, System.currentTimeMillis().toInt(), options)
-        startCall.visibility = View.INVISIBLE
-        endCall.visibility = View.VISIBLE
+
 
         CoroutineScope(Dispatchers.Main).launch {
             delay(500)
